@@ -1,11 +1,14 @@
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
+using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using TodoApp.Api.Models.Auth;
 using TodoApp.Api.Models.Todos;
+using TodoApp.Application.Behaviors;
 using TodoApp.Application.Commands.Users;
 using TodoApp.Application.Commands.Todos;
 using TodoApp.Application.Interfaces;
@@ -19,6 +22,7 @@ using TodoApp.Infrastructure.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -53,6 +57,8 @@ else
 }
 
 builder.Services.AddMediatR(typeof(CreateTodoCommand).Assembly);
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterUserCommand>();
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -87,6 +93,27 @@ else
 {
     app.UseHttpsRedirection();
 }
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+        if (exception is ValidationException validationException)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                errors = validationException.Errors.Select(e => new
+                {
+                    field = e.PropertyName,
+                    message = e.ErrorMessage
+                })
+            });
+            return;
+        }
+    });
+});
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();

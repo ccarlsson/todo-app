@@ -1,12 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "lsoVvX1SPzE=",
+  "dgSpecHash": "evhHqj0EbxI=",
   "success": true,
   "projectFilePath": "/home/ccarlsson/source/todo-app/backend/src/API/TodoApp.Api.csproj",
   "expectedPackageFiles": [
     "/home/ccarlsson/.nuget/packages/awssdk.core/3.7.100.14/awssdk.core.3.7.100.14.nupkg.sha512",
     "/home/ccarlsson/.nuget/packages/awssdk.securitytoken/3.7.100.14/awssdk.securitytoken.3.7.100.14.nupkg.sha512",
     "/home/ccarlsson/.nuget/packages/dnsclient/1.6.1/dnsclient.1.6.1.nupkg.sha512",
+    "/home/ccarlsson/.nuget/packages/fluentvalidation/11.9.0/fluentvalidation.11.9.0.nupkg.sha512",
+    "/home/ccarlsson/.nuget/packages/fluentvalidation.dependencyinjectionextensions/11.9.0/fluentvalidation.dependencyinjectionextensions.11.9.0.nupkg.sha512",
     "/home/ccarlsson/.nuget/packages/mediatr/11.1.0/mediatr.11.1.0.nupkg.sha512",
     "/home/ccarlsson/.nuget/packages/mediatr.contracts/1.0.1/mediatr.contracts.1.0.1.nupkg.sha512",
     "/home/ccarlsson/.nuget/packages/mediatr.extensions.microsoft.dependencyinjection/11.1.0/mediatr.extensions.microsoft.dependencyinjection.11.1.0.nupkg.sha512",
