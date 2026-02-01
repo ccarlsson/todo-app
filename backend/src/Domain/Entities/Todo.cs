@@ -32,6 +32,28 @@ public sealed class Todo
         UpdatedAt = CreatedAt;
     }
 
+    public Todo(
+        string id,
+        string userId,
+        string title,
+        string? description,
+        DateTime? dueDate,
+        Priority? priority,
+        TodoStatus status,
+        DateTime createdAt,
+        DateTime updatedAt)
+    {
+        Id = id;
+        UserId = userId;
+        Title = title;
+        Description = description;
+        DueDate = dueDate;
+        Priority = priority;
+        Status = status;
+        CreatedAt = createdAt;
+        UpdatedAt = updatedAt;
+    }
+
     public void Update(
         string? title,
         string? description,

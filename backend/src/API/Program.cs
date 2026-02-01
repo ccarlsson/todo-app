@@ -12,6 +12,8 @@ using TodoApp.Application.Interfaces;
 using TodoApp.Application.Queries.Todos;
 using TodoApp.Domain.ValueObjects;
 using TodoApp.Infrastructure.Repositories;
+using TodoApp.Infrastructure.Persistence;
+using TodoApp.Infrastructure.Persistence.Repositories;
 using TodoApp.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,10 +35,22 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
-builder.Services.AddSingleton<ITodoRepository, InMemoryTodoRepository>();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+
+var mongoSettings = builder.Configuration.GetSection("MongoDb").Get<MongoDbSettings>();
+if (mongoSettings is not null && !string.IsNullOrWhiteSpace(mongoSettings.ConnectionString))
+{
+    builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDb"));
+    builder.Services.AddSingleton<MongoDbContext>();
+    builder.Services.AddSingleton<IUserRepository, MongoUserRepository>();
+    builder.Services.AddSingleton<ITodoRepository, MongoTodoRepository>();
+}
+else
+{
+    builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
+    builder.Services.AddSingleton<ITodoRepository, InMemoryTodoRepository>();
+}
 
 builder.Services.AddMediatR(typeof(CreateTodoCommand).Assembly);
 
@@ -69,8 +83,10 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-app.UseHttpsRedirection();
+else
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
