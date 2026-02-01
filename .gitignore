@@ -1,0 +1,52 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+
+# Node
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.yarn-cache/
+.yarn-unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Vite / frontend builds
+frontend/dist/
+frontend/.vite/
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE
+.vscode/
+!.vscode/extensions.json
+.idea/
+
+# Test coverage
+coverage/
+
+# Docker
+*.pid
+
+# MongoDB
+*.bson
+*.archive
+
+# Misc
+*.swp
+*.tmp
