@@ -12,4 +12,8 @@
   <Folder Name="/src/Infrastructure/">
     <Project Path="src/Infrastructure/TodoApp.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Application/">
+    <Project Path="tests/Application/TodoApp.Application.Tests.csproj" />
+  </Folder>
 </Solution>
