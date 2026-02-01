@@ -43,3 +43,27 @@ async function handleLogin() {
     <p v-if="authStore.errorMessage" class="error">{{ authStore.errorMessage }}</p>
   </section>
 </template>
+
+<style scoped>
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stack label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: #334155;
+}
+</style>
