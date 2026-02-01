@@ -29,3 +29,12 @@ export interface TodoCreatePayload {
   dueDate?: string | null
   priority?: Priority | null
 }
+
+export interface TodoUpdatePayload {
+  id: string
+  title: string
+  description?: string | null
+  dueDate?: string | null
+  priority?: Priority | null
+  status: TodoStatus
+}

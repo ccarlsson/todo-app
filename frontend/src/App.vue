@@ -1,24 +1,28 @@
 <script setup lang="ts">
-import AuthPanel from './components/AuthPanel.vue'
-import HeroStats from './components/HeroStats.vue'
-import TodoForm from './components/TodoForm.vue'
-import TodoList from './components/TodoList.vue'
-import { useStatus } from './composables/useStatus'
+import { RouterLink, RouterView } from 'vue-router'
+import { useAuthStore } from './stores/authStore'
+import { useTodoStore } from './stores/todoStore'
 
-const { errorMessage } = useStatus()
+const authStore = useAuthStore()
+const todoStore = useTodoStore()
 </script>
 
 <template>
   <main class="page">
-    <HeroStats />
+    <header class="card header-bar">
+      <div>
+        <p class="eyebrow">Todo App</p>
+        <h1>Vue + Pinia + Router</h1>
+        <p class="subtitle">Senaste status: {{ authStore.lastStatus || todoStore.lastStatus || '-' }}</p>
+      </div>
+      <nav class="filters">
+        <RouterLink class="ghost" to="/todos">Todos</RouterLink>
+        <RouterLink class="ghost" to="/todos/new">Ny todo</RouterLink>
+        <RouterLink class="ghost" to="/login">Logga in</RouterLink>
+        <RouterLink class="ghost" to="/register">Registrera</RouterLink>
+      </nav>
+    </header>
 
-    <section class="grid">
-      <AuthPanel />
-      <TodoForm />
-    </section>
-
-    <TodoList />
-
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+    <RouterView />
   </main>
 </template>

@@ -131,6 +131,14 @@ button:disabled {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
 }
 
+.header-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .card-header {
   display: flex;
   align-items: center;
