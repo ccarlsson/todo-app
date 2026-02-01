@@ -1,11 +1,30 @@
 {
   "version": 3,
   "targets": {
-    "net10.0": {}
+    "net10.0": {
+      "TodoApp.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/TodoApp.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TodoApp.Domain.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "TodoApp.Domain/1.0.0": {
+      "type": "project",
+      "path": "../Domain/TodoApp.Domain.csproj",
+      "msbuildProject": "../Domain/TodoApp.Domain.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net10.0": []
+    "net10.0": [
+      "TodoApp.Domain >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "/home/ccarlsson/.nuget/packages/": {}
@@ -31,7 +50,11 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "/home/ccarlsson/source/todo-app/backend/src/Domain/TodoApp.Domain.csproj": {
+              "projectPath": "/home/ccarlsson/source/todo-app/backend/src/Domain/TodoApp.Domain.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

@@ -8,6 +8,8 @@ Thumbs.db
 # Environment
 .env
 .env.*
+bin/
+obj/
 
 # Node
 node_modules/
