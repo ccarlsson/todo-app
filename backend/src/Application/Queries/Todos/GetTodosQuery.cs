@@ -8,4 +8,5 @@ public sealed record GetTodosQuery(
     string UserId,
     TodoStatus? Status,
     Priority? Priority,
-    string? SortBy) : IRequest<List<TodoDto>>;
+    string? SortBy,
+    string? DueDateFilter) : IRequest<List<TodoDto>>;

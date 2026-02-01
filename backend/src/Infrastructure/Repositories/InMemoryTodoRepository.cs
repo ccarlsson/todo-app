@@ -30,6 +30,12 @@ public sealed class InMemoryTodoRepository : ITodoRepository
         return Task.FromResult<Todo?>(null);
     }
 
+    public Task<Todo?> GetByIdAsync(string id)
+    {
+        _todos.TryGetValue(id, out var todo);
+        return Task.FromResult(todo);
+    }
+
     public Task UpdateAsync(Todo todo)
     {
         _todos[todo.Id] = todo;

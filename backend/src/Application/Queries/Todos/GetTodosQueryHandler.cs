@@ -27,6 +27,19 @@ public sealed class GetTodosQueryHandler : IRequestHandler<GetTodosQuery, List<T
             list = list.Where(t => t.Priority == request.Priority.Value).ToList();
         }
 
+        if (!string.IsNullOrWhiteSpace(request.DueDateFilter))
+        {
+            var now = DateTime.UtcNow;
+            if (request.DueDateFilter.Equals("overdue", StringComparison.OrdinalIgnoreCase))
+            {
+                list = list.Where(t => t.DueDate.HasValue && t.DueDate.Value < now).ToList();
+            }
+            else if (request.DueDateFilter.Equals("upcoming", StringComparison.OrdinalIgnoreCase))
+            {
+                list = list.Where(t => t.DueDate.HasValue && t.DueDate.Value >= now).ToList();
+            }
+        }
+
         list = request.SortBy?.ToLowerInvariant() switch
         {
             "duedate" => list.OrderBy(t => t.DueDate ?? DateTime.MaxValue).ToList(),

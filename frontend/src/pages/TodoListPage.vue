@@ -46,6 +46,11 @@ onMounted(() => {
         <option value="Medium">Medium</option>
         <option value="High">High</option>
       </select>
+      <select v-model="todoStore.filters.dueDate" @change="todoStore.loadTodos">
+        <option value="">Alla förfallodatum</option>
+        <option value="upcoming">Kommande</option>
+        <option value="overdue">Förfallna</option>
+      </select>
       <select v-model="todoStore.filters.sortBy" @change="todoStore.loadTodos">
         <option value="createdAt">Sortera: Skapad</option>
         <option value="dueDate">Sortera: Förfallodatum</option>

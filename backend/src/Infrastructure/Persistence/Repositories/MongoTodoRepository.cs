@@ -33,6 +33,12 @@ public sealed class MongoTodoRepository : ITodoRepository
         return document is null ? null : ToDomain(document);
     }
 
+    public async Task<Todo?> GetByIdAsync(string id)
+    {
+        var document = await _todos.Find(t => t.Id == id).FirstOrDefaultAsync();
+        return document is null ? null : ToDomain(document);
+    }
+
     public async Task UpdateAsync(Todo todo)
     {
         var document = ToDocument(todo);

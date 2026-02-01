@@ -115,7 +115,7 @@ public sealed class TodoHandlersTests
 
         var listHandler = new GetTodosQueryHandler(todos);
         var filtered = await listHandler.Handle(
-            new GetTodosQuery("user-1", TodoStatus.InProgress, Priority.High, "createdAt"),
+            new GetTodosQuery("user-1", TodoStatus.InProgress, Priority.High, "createdAt", null),
             CancellationToken.None);
 
         Assert.Single(filtered);

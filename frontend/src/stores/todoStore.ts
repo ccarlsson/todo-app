@@ -10,6 +10,7 @@ interface TodoState {
   filters: {
     status: string
     priority: string
+    dueDate: string
     sortBy: string
   }
 }
@@ -23,6 +24,7 @@ export const useTodoStore = defineStore('todos', {
     filters: {
       status: '',
       priority: '',
+      dueDate: '',
       sortBy: 'createdAt',
     },
   }),
@@ -41,6 +43,7 @@ export const useTodoStore = defineStore('todos', {
         const query = new URLSearchParams()
         if (this.filters.status) query.set('status', this.filters.status)
         if (this.filters.priority) query.set('priority', this.filters.priority)
+        if (this.filters.dueDate) query.set('dueDate', this.filters.dueDate)
         if (this.filters.sortBy) query.set('sortBy', this.filters.sortBy)
 
         const result = await apiFetch<TodoResponse[]>(`/todos?${query.toString()}`)

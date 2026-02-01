@@ -159,7 +159,8 @@ app.MapGet("/todos", async (
     IMediator mediator,
     string? status,
     string? priority,
-    string? sortBy) =>
+    string? sortBy,
+    string? dueDate) =>
 {
     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
     if (userId is null)
@@ -170,7 +171,7 @@ app.MapGet("/todos", async (
     var parsedStatus = Enum.TryParse<TodoStatus>(status, true, out var s) ? s : (TodoStatus?)null;
     var parsedPriority = Enum.TryParse<Priority>(priority, true, out var p) ? p : (Priority?)null;
 
-    var todos = await mediator.Send(new GetTodosQuery(userId, parsedStatus, parsedPriority, sortBy));
+    var todos = await mediator.Send(new GetTodosQuery(userId, parsedStatus, parsedPriority, sortBy, dueDate));
 
     var response = todos.Select(t => new TodoResponse(
         t.Id,
@@ -188,7 +189,8 @@ app.MapGet("/todos", async (
 app.MapGet("/todos/{id}", async (
     string id,
     ClaimsPrincipal user,
-    IMediator mediator) =>
+    IMediator mediator,
+    ITodoRepository todosRepository) =>
 {
     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
     if (userId is null)
@@ -199,7 +201,8 @@ app.MapGet("/todos/{id}", async (
     var todo = await mediator.Send(new GetTodoByIdQuery(userId, id));
     if (todo is null)
     {
-        return Results.NotFound();
+        var existing = await todosRepository.GetByIdAsync(id);
+        return existing is null ? Results.NotFound() : Results.Forbid();
     }
 
     var response = new TodoResponse(
@@ -245,7 +248,8 @@ app.MapPut("/todos/{id}", async (
     string id,
     TodoUpdateRequest request,
     ClaimsPrincipal user,
-    IMediator mediator) =>
+    IMediator mediator,
+    ITodoRepository todosRepository) =>
 {
     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
     if (userId is null)
@@ -262,13 +266,20 @@ app.MapPut("/todos/{id}", async (
         request.Priority,
         request.Status));
 
-    return updated ? Results.NoContent() : Results.NotFound();
+    if (updated)
+    {
+        return Results.NoContent();
+    }
+
+    var existing = await todosRepository.GetByIdAsync(id);
+    return existing is null ? Results.NotFound() : Results.Forbid();
 }).RequireAuthorization();
 
 app.MapDelete("/todos/{id}", async (
     string id,
     ClaimsPrincipal user,
-    IMediator mediator) =>
+    IMediator mediator,
+    ITodoRepository todosRepository) =>
 {
     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
     if (userId is null)
@@ -277,7 +288,13 @@ app.MapDelete("/todos/{id}", async (
     }
 
     var deleted = await mediator.Send(new DeleteTodoCommand(userId, id));
-    return deleted ? Results.NoContent() : Results.NotFound();
+    if (deleted)
+    {
+        return Results.NoContent();
+    }
+
+    var existing = await todosRepository.GetByIdAsync(id);
+    return existing is null ? Results.NotFound() : Results.Forbid();
 }).RequireAuthorization();
 
 app.Run();
