@@ -1,15 +1,8 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
-import type { Priority, TodoCreatePayload } from '../models/todo'
-
-defineProps<{
-  isAuthenticated: boolean
-  isBusy: boolean
-}>()
-
-const emit = defineEmits<{
-  (event: 'create', payload: TodoCreatePayload): void
-}>()
+import { computed, reactive } from 'vue'
+import type { Priority } from '../models/todo'
+import { useAuth } from '../composables/useAuth'
+import { useTodos } from '../composables/useTodos'
 
 const form = reactive({
   title: '',
@@ -18,8 +11,13 @@ const form = reactive({
   priority: 'Medium' as Priority,
 })
 
-function handleSubmit() {
-  emit('create', {
+const { isAuthenticated } = useAuth()
+const { isBusy, createTodo } = useTodos()
+
+const isDisabled = computed(() => !isAuthenticated.value || isBusy.value)
+
+async function handleSubmit() {
+  await createTodo({
     title: form.title,
     description: form.description || null,
     dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
@@ -59,7 +57,7 @@ function handleSubmit() {
           <option value="High">High</option>
         </select>
       </label>
-      <button type="submit" :disabled="!isAuthenticated || isBusy">
+      <button type="submit" :disabled="isDisabled">
         Skapa
       </button>
     </form>

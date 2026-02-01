@@ -1,16 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import type { AuthPayload } from '../models/todo'
-
-defineProps<{
-  isAuthenticated: boolean
-  isBusy: boolean
-}>()
-
-const emit = defineEmits<{
-  (event: 'submit', payload: AuthPayload): void
-  (event: 'logout'): void
-}>()
+import { useAuth } from '../composables/useAuth'
+import { useTodos } from '../composables/useTodos'
 
 const mode = ref<'login' | 'register'>('login')
 const form = reactive({
@@ -18,13 +9,21 @@ const form = reactive({
   password: '',
 })
 
-function handleSubmit() {
-  emit('submit', {
+const { isAuthenticated, isBusy, handleAuth, logout } = useAuth()
+const { loadTodos } = useTodos()
+
+async function handleSubmit() {
+  const success = await handleAuth({
     mode: mode.value,
     email: form.email,
     password: form.password,
   })
+
+  if (success) {
+    await loadTodos()
+  }
 }
+
 </script>
 
 <template>
@@ -61,7 +60,7 @@ function handleSubmit() {
       <button type="submit" :disabled="isBusy">
         {{ mode === 'login' ? 'Logga in' : 'Skapa konto' }}
       </button>
-      <button v-if="isAuthenticated" type="button" class="ghost" @click="emit('logout')">
+      <button v-if="isAuthenticated" type="button" class="ghost" @click="logout">
         Logga ut
       </button>
     </form>

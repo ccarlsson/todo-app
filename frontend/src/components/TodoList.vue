@@ -1,43 +1,25 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import type { Priority, TodoResponse, TodoStatus } from '../models/todo'
+import { useAuth } from '../composables/useAuth'
+import { useTodos } from '../composables/useTodos'
 
-const props = defineProps<{
-  todos: TodoResponse[]
-  isAuthenticated: boolean
-  isBusy: boolean
-  statusFilter: string
-  priorityFilter: string
-  sortBy: string
-}>()
-
-const emit = defineEmits<{
-  (event: 'refresh'): void
-  (event: 'updateStatus', todo: TodoResponse, status: TodoStatus): void
-  (event: 'remove', todoId: string): void
-  (event: 'update:statusFilter', value: string): void
-  (event: 'update:priorityFilter', value: string): void
-  (event: 'update:sortBy', value: string): void
-}>()
+const { isAuthenticated } = useAuth()
+const { todos, filters, isBusy, loadTodos, updateStatus, removeTodo } = useTodos()
 
 function handleStatusChange(event: Event, todo: TodoResponse) {
   const value = (event.target as HTMLSelectElement).value as TodoStatus
-  emit('updateStatus', todo, value)
-}
-
-function updateStatusFilter(event: Event) {
-  emit('update:statusFilter', (event.target as HTMLSelectElement).value)
-}
-
-function updatePriorityFilter(event: Event) {
-  emit('update:priorityFilter', (event.target as HTMLSelectElement).value)
-}
-
-function updateSortBy(event: Event) {
-  emit('update:sortBy', (event.target as HTMLSelectElement).value)
+  updateStatus(todo, value)
 }
 
 const statusOptions: TodoStatus[] = ['NotStarted', 'InProgress', 'Completed']
 const priorityOptions: Priority[] = ['Low', 'Medium', 'High']
+
+onMounted(() => {
+  if (isAuthenticated.value) {
+    loadTodos()
+  }
+})
 </script>
 
 <template>
@@ -45,23 +27,23 @@ const priorityOptions: Priority[] = ['Low', 'Medium', 'High']
     <header class="card-header">
       <h2>Todos</h2>
       <div class="filters">
-        <select :value="statusFilter" @change="updateStatusFilter">
+        <select v-model="filters.status" @change="loadTodos">
           <option value="">Alla status</option>
           <option v-for="status in statusOptions" :key="status" :value="status">
             {{ status }}
           </option>
         </select>
-        <select :value="priorityFilter" @change="updatePriorityFilter">
+        <select v-model="filters.priority" @change="loadTodos">
           <option value="">Alla prioriteringar</option>
           <option v-for="priority in priorityOptions" :key="priority" :value="priority">
             {{ priority }}
           </option>
         </select>
-        <select :value="sortBy" @change="updateSortBy">
+        <select v-model="filters.sortBy" @change="loadTodos">
           <option value="createdAt">Sortera: Skapad</option>
           <option value="dueDate">Sortera: Förfallodatum</option>
         </select>
-        <button type="button" class="ghost" @click="emit('refresh')" :disabled="isBusy">
+        <button type="button" class="ghost" @click="loadTodos" :disabled="isBusy">
           Uppdatera
         </button>
       </div>
@@ -71,7 +53,7 @@ const priorityOptions: Priority[] = ['Low', 'Medium', 'High']
     <p v-else-if="todos.length === 0" class="muted">Inga todos ännu.</p>
 
     <ul v-else class="todo-list">
-      <li v-for="todo in props.todos" :key="todo.id" class="todo-item">
+      <li v-for="todo in todos" :key="todo.id" class="todo-item">
         <div class="todo-main">
           <div>
             <h3>{{ todo.title }}</h3>
@@ -88,7 +70,7 @@ const priorityOptions: Priority[] = ['Low', 'Medium', 'High']
                 {{ status }}
               </option>
             </select>
-            <button type="button" class="danger" @click="emit('remove', todo.id)">
+            <button type="button" class="danger" @click="removeTodo(todo.id)">
               Ta bort
             </button>
           </div>

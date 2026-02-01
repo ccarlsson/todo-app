@@ -1,15 +1,11 @@
 <script setup lang="ts">
-interface Stats {
-  total: number
-  open: number
-  done: number
-}
+import { getApiBase } from '../api/client'
+import { useStatus } from '../composables/useStatus'
+import { useTodos } from '../composables/useTodos'
 
-defineProps<{
-  apiBase: string
-  stats: Stats
-  lastStatus: string
-}>()
+const apiBase = getApiBase()
+const { lastStatus } = useStatus()
+const { stats } = useTodos()
 </script>
 
 <template>
