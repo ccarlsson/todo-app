@@ -1,12 +1,14 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using TodoApp.Api.Models.Auth;
 using TodoApp.Api.Models.Todos;
+using TodoApp.Application.Commands.Users;
+using TodoApp.Application.Commands.Todos;
 using TodoApp.Application.Interfaces;
-using TodoApp.Domain.Entities;
+using TodoApp.Application.Queries.Todos;
 using TodoApp.Domain.ValueObjects;
 using TodoApp.Infrastructure.Repositories;
 using TodoApp.Infrastructure.Services;
@@ -18,6 +20,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddSingleton<IUserRepository, InMemoryUserRepository>();
 builder.Services.AddSingleton<ITodoRepository, InMemoryTodoRepository>();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+
+builder.Services.AddMediatR(typeof(CreateTodoCommand).Assembly);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -55,96 +60,43 @@ app.UseAuthorization();
 
 app.MapPost("/auth/register", async (
     RegisterRequest request,
-    IUserRepository users,
-    IPasswordHasher hasher) =>
+    IMediator mediator) =>
 {
-    if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+    var result = await mediator.Send(new RegisterUserCommand(request.Email, request.Password));
+    if (!result.Success)
     {
-        return Results.BadRequest("Email and password are required.");
+        return result.ErrorCode switch
+        {
+            "Conflict" => Results.Conflict(result.Error),
+            _ => Results.BadRequest(result.Error)
+        };
     }
 
-    Email email;
-    try
-    {
-        email = Email.Create(request.Email);
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(ex.Message);
-    }
-
-    var existing = await users.GetByEmailAsync(email);
-    if (existing is not null)
-    {
-        return Results.Conflict("Email already exists.");
-    }
-
-    var hash = hasher.Hash(request.Password);
-    var user = new User(email, hash);
-    await users.CreateAsync(user);
-
-    return Results.Created($"/users/{user.Id}", new { user.Id, Email = user.Email.Value });
+    var user = result.Value!;
+    return Results.Created($"/users/{user.Id}", user);
 });
 
 app.MapPost("/auth/login", async (
     LoginRequest request,
-    IUserRepository users,
-    IPasswordHasher hasher,
-    IConfiguration configuration) =>
+    IMediator mediator) =>
 {
-    if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+    var result = await mediator.Send(new LoginUserCommand(request.Email, request.Password));
+    if (!result.Success)
     {
-        return Results.BadRequest("Email and password are required.");
-    }
-
-    Email email;
-    try
-    {
-        email = Email.Create(request.Email);
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(ex.Message);
-    }
-
-    var user = await users.GetByEmailAsync(email);
-    if (user is null || !hasher.Verify(request.Password, user.PasswordHash))
-    {
-        return Results.Unauthorized();
-    }
-
-    var jwtSection = configuration.GetSection("Jwt");
-    var issuer = jwtSection["Issuer"] ?? "TodoApp";
-    var audience = jwtSection["Audience"] ?? "TodoApp";
-    var key = jwtSection["Key"] ?? "change-this-development-key-please";
-    var expiresMinutes = int.TryParse(jwtSection["ExpiresMinutes"], out var exp) ? exp : 60;
-
-    var tokenHandler = new JwtSecurityTokenHandler();
-    var keyBytes = Encoding.UTF8.GetBytes(key);
-    var tokenDescriptor = new SecurityTokenDescriptor
-    {
-        Subject = new ClaimsIdentity(new[]
+        return result.ErrorCode switch
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Email, user.Email.Value)
-        }),
-        Expires = DateTime.UtcNow.AddMinutes(expiresMinutes),
-        Issuer = issuer,
-        Audience = audience,
-        SigningCredentials = new SigningCredentials(
-            new SymmetricSecurityKey(keyBytes),
-            SecurityAlgorithms.HmacSha256Signature)
-    };
+            "Unauthorized" => Results.Unauthorized(),
+            _ => Results.BadRequest(result.Error)
+        };
+    }
 
-    var token = tokenHandler.CreateToken(tokenDescriptor);
-    var jwt = tokenHandler.WriteToken(token);
-
-    return Results.Ok(new AuthResponse(jwt, expiresMinutes * 60));
+    var token = result.Value!;
+    return Results.Ok(new AuthResponse(token.Token, token.ExpiresIn));
 });
 
 app.MapGet("/todos", async (
     ClaimsPrincipal user,
-    ITodoRepository todos,
+    IMediator mediator,
     string? status,
     string? priority,
     string? sortBy) =>
@@ -155,26 +107,12 @@ app.MapGet("/todos", async (
         return Results.Unauthorized();
     }
 
-    var list = await todos.GetByUserAsync(userId);
+    var parsedStatus = Enum.TryParse<TodoStatus>(status, true, out var s) ? s : (TodoStatus?)null;
+    var parsedPriority = Enum.TryParse<Priority>(priority, true, out var p) ? p : (Priority?)null;
 
-    if (Enum.TryParse<TodoStatus>(status, true, out var parsedStatus))
-    {
-        list = list.Where(t => t.Status == parsedStatus).ToList();
-    }
+    var todos = await mediator.Send(new GetTodosQuery(userId, parsedStatus, parsedPriority, sortBy));
 
-    if (Enum.TryParse<Priority>(priority, true, out var parsedPriority))
-    {
-        list = list.Where(t => t.Priority == parsedPriority).ToList();
-    }
-
-    list = sortBy?.ToLowerInvariant() switch
-    {
-        "duedate" => list.OrderBy(t => t.DueDate ?? DateTime.MaxValue).ToList(),
-        "createdat" => list.OrderBy(t => t.CreatedAt).ToList(),
-        _ => list.OrderBy(t => t.CreatedAt).ToList()
-    };
-
-    var response = list.Select(t => new TodoResponse(
+    var response = todos.Select(t => new TodoResponse(
         t.Id,
         t.Title,
         t.Description,
@@ -190,7 +128,7 @@ app.MapGet("/todos", async (
 app.MapGet("/todos/{id}", async (
     string id,
     ClaimsPrincipal user,
-    ITodoRepository todos) =>
+    IMediator mediator) =>
 {
     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
     if (userId is null)
@@ -198,7 +136,7 @@ app.MapGet("/todos/{id}", async (
         return Results.Unauthorized();
     }
 
-    var todo = await todos.GetByIdAsync(id, userId);
+    var todo = await mediator.Send(new GetTodoByIdQuery(userId, id));
     if (todo is null)
     {
         return Results.NotFound();
@@ -220,7 +158,7 @@ app.MapGet("/todos/{id}", async (
 app.MapPost("/todos", async (
     TodoCreateRequest request,
     ClaimsPrincipal user,
-    ITodoRepository todos) =>
+    IMediator mediator) =>
 {
     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
     if (userId is null)
@@ -233,23 +171,21 @@ app.MapPost("/todos", async (
         return Results.BadRequest("Title is required.");
     }
 
-    var todo = new Todo(
+    var todoId = await mediator.Send(new CreateTodoCommand(
         userId,
-        request.Title.Trim(),
+        request.Title,
         request.Description,
         request.DueDate,
-        request.Priority);
+        request.Priority));
 
-    await todos.CreateAsync(todo);
-
-    return Results.Created($"/todos/{todo.Id}", new { todo.Id });
+    return Results.Created($"/todos/{todoId}", new { Id = todoId });
 }).RequireAuthorization();
 
 app.MapPut("/todos/{id}", async (
     string id,
     TodoUpdateRequest request,
     ClaimsPrincipal user,
-    ITodoRepository todos) =>
+    IMediator mediator) =>
 {
     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
     if (userId is null)
@@ -257,28 +193,22 @@ app.MapPut("/todos/{id}", async (
         return Results.Unauthorized();
     }
 
-    var todo = await todos.GetByIdAsync(id, userId);
-    if (todo is null)
-    {
-        return Results.NotFound();
-    }
-
-    todo.Update(
+    var updated = await mediator.Send(new UpdateTodoCommand(
+        userId,
+        id,
         request.Title,
         request.Description,
         request.DueDate,
         request.Priority,
-        request.Status);
+        request.Status));
 
-    await todos.UpdateAsync(todo);
-
-    return Results.NoContent();
+    return updated ? Results.NoContent() : Results.NotFound();
 }).RequireAuthorization();
 
 app.MapDelete("/todos/{id}", async (
     string id,
     ClaimsPrincipal user,
-    ITodoRepository todos) =>
+    IMediator mediator) =>
 {
     var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
     if (userId is null)
@@ -286,8 +216,8 @@ app.MapDelete("/todos/{id}", async (
         return Results.Unauthorized();
     }
 
-    await todos.DeleteAsync(id, userId);
-    return Results.NoContent();
+    var deleted = await mediator.Send(new DeleteTodoCommand(userId, id));
+    return deleted ? Results.NoContent() : Results.NotFound();
 }).RequireAuthorization();
 
 app.Run();

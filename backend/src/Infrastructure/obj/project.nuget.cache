@@ -1,8 +1,16 @@
 {
   "version": 2,
-  "dgSpecHash": "VWP4TsNe3Wg=",
+  "dgSpecHash": "xI97a3h4COA=",
   "success": true,
   "projectFilePath": "/home/ccarlsson/source/todo-app/backend/src/Infrastructure/TodoApp.Infrastructure.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/home/ccarlsson/.nuget/packages/mediatr/11.1.0/mediatr.11.1.0.nupkg.sha512",
+    "/home/ccarlsson/.nuget/packages/mediatr.contracts/1.0.1/mediatr.contracts.1.0.1.nupkg.sha512",
+    "/home/ccarlsson/.nuget/packages/microsoft.identitymodel.abstractions/8.5.0/microsoft.identitymodel.abstractions.8.5.0.nupkg.sha512",
+    "/home/ccarlsson/.nuget/packages/microsoft.identitymodel.jsonwebtokens/8.5.0/microsoft.identitymodel.jsonwebtokens.8.5.0.nupkg.sha512",
+    "/home/ccarlsson/.nuget/packages/microsoft.identitymodel.logging/8.5.0/microsoft.identitymodel.logging.8.5.0.nupkg.sha512",
+    "/home/ccarlsson/.nuget/packages/microsoft.identitymodel.tokens/8.5.0/microsoft.identitymodel.tokens.8.5.0.nupkg.sha512",
+    "/home/ccarlsson/.nuget/packages/system.identitymodel.tokens.jwt/8.5.0/system.identitymodel.tokens.jwt.8.5.0.nupkg.sha512"
+  ],
   "logs": []
 }
