@@ -8,7 +8,7 @@ import { useI18n } from 'vue-i18n'
 const todoStore = useTodoStore()
 const authStore = useAuthStore()
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const stats = computed(() => ({
   total: todoStore.todos.length,
@@ -44,6 +44,21 @@ function priorityLabel(value: string | null | undefined) {
     default:
       return '-'
   }
+}
+
+function formatDueDate(value: string | null | undefined) {
+  if (!value) return '-'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value.slice(0, 10)
+  }
+
+  const formatLocale = locale.value === 'sv' ? 'sv-SE' : 'en-US'
+  return date.toLocaleDateString(formatLocale, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
 }
 
 function handleLogout() {
@@ -119,7 +134,7 @@ function handleLogout() {
             <div class="meta">
               <span>{{ t('todos.statusLabel') }}: {{ statusLabel(todo.status) }}</span>
               <span>{{ t('todos.priorityLabel') }}: {{ priorityLabel(todo.priority) }}</span>
-              <span>{{ t('todos.dueLabel') }}: {{ todo.dueDate ? todo.dueDate.slice(0, 10) : '-' }}</span>
+              <span>{{ t('todos.dueLabel') }}: {{ formatDueDate(todo.dueDate) }}</span>
             </div>
           </div>
           <div class="actions">
