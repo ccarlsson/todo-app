@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTodoStore } from '../stores/todoStore'
 import type { Priority, TodoStatus } from '../models/todo'
@@ -11,6 +11,8 @@ const router = useRouter()
 const todoId = computed(() => route.params.id as string | undefined)
 const isNew = computed(() => !todoId.value || todoId.value === 'new')
 const isLoading = ref(false)
+const errors = ref<{ title?: string }>({})
+const touchedTitle = ref(false)
 
 const form = reactive({
   title: '',
@@ -38,6 +40,14 @@ async function loadTodo() {
 }
 
 async function handleSave() {
+  touchedTitle.value = true
+  const next: { title?: string } = {}
+  if (!form.title.trim()) {
+    next.title = 'Titel är obligatoriskt.'
+  }
+  errors.value = next
+  if (Object.keys(next).length > 0) return
+
   if (isNew.value) {
     await todoStore.createTodo({
       title: form.title,
@@ -60,6 +70,18 @@ async function handleSave() {
 }
 
 onMounted(loadTodo)
+
+watch(
+  () => form.title,
+  () => {
+    if (!touchedTitle.value) return
+    if (!form.title.trim()) {
+      errors.value = { title: 'Titel är obligatoriskt.' }
+    } else {
+      errors.value = {}
+    }
+  },
+)
 </script>
 
 <template>
@@ -87,7 +109,15 @@ onMounted(loadTodo)
     <form class="stack" @submit.prevent="handleSave">
       <label>
         Titel
-        <input v-model="form.title" type="text" required />
+        <input
+          v-model="form.title"
+          type="text"
+          required
+          :class="{ invalid: touchedTitle && errors.title }"
+          @input="touchedTitle = true"
+          @blur="touchedTitle = true"
+        />
+        <span v-if="touchedTitle && errors.title" class="field-error">{{ errors.title }}</span>
       </label>
       <label>
         Beskrivning
