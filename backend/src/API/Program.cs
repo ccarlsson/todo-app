@@ -31,14 +31,23 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
-        policy
-            .WithOrigins("http://localhost:5173")
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins);
+        }
+        else
+        {
+            policy.AllowAnyOrigin();
+        }
+
+        policy.AllowAnyHeader().AllowAnyMethod();
     });
 });
 
@@ -69,7 +78,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         var jwtSection = builder.Configuration.GetSection("Jwt");
         var issuer = jwtSection["Issuer"] ?? "TodoApp";
         var audience = jwtSection["Audience"] ?? "TodoApp";
-        var key = jwtSection["Key"] ?? "change-this-development-key-please";
+        var key = jwtSection["Key"]
+            ?? Environment.GetEnvironmentVariable("JWT_KEY")
+            ?? "change-this-development-key-please";
 
         options.TokenValidationParameters = new TokenValidationParameters
         {

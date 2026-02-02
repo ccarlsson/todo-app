@@ -23,7 +23,9 @@ public sealed class JwtTokenService : IJwtTokenService
         var jwtSection = _configuration.GetSection("Jwt");
         var issuer = jwtSection["Issuer"] ?? "TodoApp";
         var audience = jwtSection["Audience"] ?? "TodoApp";
-        var key = jwtSection["Key"] ?? "change-this-development-key-please";
+        var key = jwtSection["Key"]
+            ?? Environment.GetEnvironmentVariable("JWT_KEY")
+            ?? "change-this-development-key-please";
         var expiresMinutes = int.TryParse(jwtSection["ExpiresMinutes"], out var exp) ? exp : 60;
 
         var tokenHandler = new JwtSecurityTokenHandler();
