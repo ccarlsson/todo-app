@@ -32,11 +32,17 @@ function handleLogout() {
         <p class="subtitle">Totalt: {{ stats.total }} · Öppna: {{ stats.open }} · Klara: {{ stats.done }}</p>
       </div>
       <div class="filters">
-        <RouterLink class="ghost" to="/todos/new">Skapa</RouterLink>
-        <button type="button" class="ghost" @click="todoStore.loadTodos" :disabled="todoStore.isBusy">
+        <RouterLink v-if="authStore.isAuthenticated" class="ghost" to="/todos/new">Skapa</RouterLink>
+        <button
+          v-if="authStore.isAuthenticated"
+          type="button"
+          class="ghost"
+          @click="todoStore.loadTodos"
+          :disabled="todoStore.isBusy"
+        >
           Uppdatera
         </button>
-        <button type="button" class="ghost" @click="handleLogout">Logga ut</button>
+        <button v-if="authStore.isAuthenticated" type="button" class="ghost" @click="handleLogout">Logga ut</button>
       </div>
     </header>
 

@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
+import { useAuthStore } from './stores/authStore'
+const authStore = useAuthStore()
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 </script>
 
 <template>
@@ -11,10 +15,10 @@ import { RouterLink, RouterView } from 'vue-router'
         <p class="subtitle">Håll koll på allt som behöver bli klart.</p>
       </div>
       <nav class="filters">
-        <RouterLink class="ghost" to="/todos">Todos</RouterLink>
-        <RouterLink class="ghost" to="/todos/new">Ny todo</RouterLink>
-        <RouterLink class="ghost" to="/login">Logga in</RouterLink>
-        <RouterLink class="ghost" to="/register">Registrera</RouterLink>
+        <RouterLink v-if="isAuthenticated" class="ghost" to="/todos">Todos</RouterLink>
+        <RouterLink v-if="isAuthenticated" class="ghost" to="/todos/new">Ny todo</RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="ghost" to="/login">Logga in</RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="ghost" to="/register">Registrera</RouterLink>
       </nav>
     </header>
 
