@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using TodoApp.Api.Health;
 using TodoApp.Api.Models.Auth;
 using TodoApp.Api.Models.Todos;
 using TodoApp.Application.Behaviors;
@@ -23,6 +24,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
+builder.Services.AddHealthChecks()
+    .AddCheck<MongoHealthCheck>("mongodb");
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -114,6 +117,8 @@ app.UseExceptionHandler(errorApp =>
         }
     });
 });
+
+app.MapHealthChecks("/health");
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
