@@ -17,5 +17,20 @@ public sealed class MongoDbContext
 
         Users = database.GetCollection<MongoUserDocument>("users");
         Todos = database.GetCollection<MongoTodoDocument>("todos");
+
+        EnsureIndexes();
+    }
+
+    private void EnsureIndexes()
+    {
+        var userIndex = Builders<MongoUserDocument>.IndexKeys.Ascending(u => u.Email);
+        Users.Indexes.CreateOne(new CreateIndexModel<MongoUserDocument>(
+            userIndex,
+            new CreateIndexOptions { Unique = true }));
+
+        var todoIndex = Builders<MongoTodoDocument>.IndexKeys
+            .Ascending(t => t.UserId)
+            .Descending(t => t.CreatedAt);
+        Todos.Indexes.CreateOne(new CreateIndexModel<MongoTodoDocument>(todoIndex));
     }
 }
