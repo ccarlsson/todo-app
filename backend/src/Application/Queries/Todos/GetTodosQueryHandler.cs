@@ -19,12 +19,12 @@ public sealed class GetTodosQueryHandler : IRequestHandler<GetTodosQuery, List<T
 
         if (request.Status.HasValue)
         {
-            list = list.Where(t => t.Status == request.Status.Value).ToList();
+            list = [.. list.Where(t => t.Status == request.Status.Value)];
         }
 
         if (request.Priority.HasValue)
         {
-            list = list.Where(t => t.Priority == request.Priority.Value).ToList();
+            list = [.. list.Where(t => t.Priority == request.Priority.Value)];
         }
 
         if (!string.IsNullOrWhiteSpace(request.DueDateFilter))
@@ -32,22 +32,22 @@ public sealed class GetTodosQueryHandler : IRequestHandler<GetTodosQuery, List<T
             var now = DateTime.UtcNow;
             if (request.DueDateFilter.Equals("overdue", StringComparison.OrdinalIgnoreCase))
             {
-                list = list.Where(t => t.DueDate.HasValue && t.DueDate.Value < now).ToList();
+                list = [.. list.Where(t => t.DueDate.HasValue && t.DueDate.Value < now)];
             }
             else if (request.DueDateFilter.Equals("upcoming", StringComparison.OrdinalIgnoreCase))
             {
-                list = list.Where(t => t.DueDate.HasValue && t.DueDate.Value >= now).ToList();
+                list = [.. list.Where(t => t.DueDate.HasValue && t.DueDate.Value >= now)];
             }
         }
 
         list = request.SortBy?.ToLowerInvariant() switch
         {
-            "duedate" => list.OrderBy(t => t.DueDate ?? DateTime.MaxValue).ToList(),
-            "createdat" => list.OrderBy(t => t.CreatedAt).ToList(),
-            _ => list.OrderBy(t => t.CreatedAt).ToList()
+            "duedate" => [.. list.OrderBy(t => t.DueDate ?? DateTime.MaxValue)],
+            "createdat" => [.. list.OrderBy(t => t.CreatedAt)],
+            _ => [.. list.OrderBy(t => t.CreatedAt)]
         };
 
-        return list.Select(t => new TodoDto(
+        return [.. list.Select(t => new TodoDto(
             t.Id,
             t.Title,
             t.Description,
@@ -55,6 +55,6 @@ public sealed class GetTodosQueryHandler : IRequestHandler<GetTodosQuery, List<T
             t.Priority,
             t.Status,
             t.CreatedAt,
-            t.UpdatedAt)).ToList();
+            t.UpdatedAt))];
     }
 }

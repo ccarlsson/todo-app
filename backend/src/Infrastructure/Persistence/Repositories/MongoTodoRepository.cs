@@ -24,7 +24,7 @@ public sealed class MongoTodoRepository : ITodoRepository
     public async Task<List<Todo>> GetByUserAsync(string userId)
     {
         var documents = await _todos.Find(t => t.UserId == userId).ToListAsync();
-        return documents.Select(ToDomain).ToList();
+        return [.. documents.Select(ToDomain)];
     }
 
     public async Task<Todo?> GetByIdAsync(string id, string userId)
