@@ -40,6 +40,16 @@ const todoStore = useTodoStore()
   gap: 1.5rem;
   align-items: center;
   justify-content: space-between;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(97, 175, 239, 0.08), rgba(152, 195, 121, 0.08));
+}
+
+.header-bar h1 {
+  color: var(--text-strong);
+}
+
+.header-bar .subtitle {
+  color: var(--text-muted);
 }
 
 .filters {

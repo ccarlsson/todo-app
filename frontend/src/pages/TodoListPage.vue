@@ -113,9 +113,10 @@ onMounted(() => {
 }
 
 .todo-item {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1rem 1.25rem;
+  background: var(--surface-strong);
 }
 
 .todo-main {
@@ -130,7 +131,7 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 0.75rem;
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .actions {

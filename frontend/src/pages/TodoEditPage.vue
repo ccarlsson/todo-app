@@ -136,6 +136,6 @@ onMounted(loadTodo)
   flex-direction: column;
   gap: 0.4rem;
   font-size: 0.9rem;
-  color: #334155;
+  color: var(--text-muted);
 }
 </style>
