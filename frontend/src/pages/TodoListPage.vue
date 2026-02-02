@@ -70,7 +70,17 @@ function handleLogout() {
       </select>
     </div>
 
-    <p v-if="todoStore.todos.length === 0" class="muted">Inga todos ännu.</p>
+    <div v-if="todoStore.isBusy" class="todo-list">
+      <div v-for="n in 3" :key="n" class="skeleton skeleton-card">
+        <div class="skeleton-stack">
+          <div class="skeleton-line large" style="width: 45%"></div>
+          <div class="skeleton-line" style="width: 70%"></div>
+          <div class="skeleton-line" style="width: 55%"></div>
+        </div>
+      </div>
+    </div>
+
+    <p v-else-if="todoStore.todos.length === 0" class="empty-state">Inga todos ännu. Skapa din första!</p>
 
     <ul v-else class="todo-list">
       <li v-for="todo in todoStore.todos" :key="todo.id" class="todo-item">

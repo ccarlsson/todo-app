@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTodoStore } from '../stores/todoStore'
 import type { Priority, TodoStatus } from '../models/todo'
@@ -10,6 +10,7 @@ const router = useRouter()
 
 const todoId = computed(() => route.params.id as string | undefined)
 const isNew = computed(() => !todoId.value || todoId.value === 'new')
+const isLoading = ref(false)
 
 const form = reactive({
   title: '',
@@ -23,7 +24,7 @@ const isBusy = computed(() => todoStore.isBusy)
 
 async function loadTodo() {
   if (!todoId.value || isNew.value) return
-
+  isLoading.value = true
   const todo = await todoStore.fetchTodo(todoId.value)
   if (todo) {
     form.title = todo.title
@@ -32,6 +33,8 @@ async function loadTodo() {
     form.priority = (todo.priority ?? 'Medium') as Priority
     form.status = todo.status
   }
+
+  isLoading.value = false
 }
 
 async function handleSave() {
@@ -70,6 +73,16 @@ onMounted(loadTodo)
         <RouterLink class="ghost" to="/todos">Tillbaka</RouterLink>
       </div>
     </header>
+
+    <div v-if="isLoading" class="skeleton skeleton-card">
+      <div class="skeleton-stack">
+        <div class="skeleton-line large" style="width: 50%"></div>
+        <div class="skeleton-line" style="width: 85%"></div>
+        <div class="skeleton-line" style="width: 80%"></div>
+        <div class="skeleton-line" style="width: 60%"></div>
+        <div class="skeleton-line" style="width: 40%"></div>
+      </div>
+    </div>
 
     <form class="stack" @submit.prevent="handleSave">
       <label>
