@@ -184,6 +184,19 @@ a.ghost:focus {
   border: 1px solid rgba(224, 108, 117, 0.45);
 }
 
+.error-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+  background: rgba(224, 108, 117, 0.2);
+  border: 1px solid rgba(224, 108, 117, 0.6);
+  color: #f6c6cb;
+}
+
 .field-error {
   color: #f6c6cb;
   font-size: 0.8rem;

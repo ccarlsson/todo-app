@@ -1,13 +1,43 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from './stores/authStore'
+import { useTodoStore } from './stores/todoStore'
 const authStore = useAuthStore()
+const todoStore = useTodoStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
+const errorBanner = computed(() => authStore.errorMessage || todoStore.errorMessage)
+const dismissTimer = ref<number | null>(null)
+
+function clearErrors() {
+  authStore.clearError()
+  todoStore.clearError()
+}
+
+watch(errorBanner, (value) => {
+  if (!value) return
+  if (dismissTimer.value) {
+    window.clearTimeout(dismissTimer.value)
+  }
+  dismissTimer.value = window.setTimeout(() => {
+    clearErrors()
+    dismissTimer.value = null
+  }, 6000)
+})
+
+onBeforeUnmount(() => {
+  if (dismissTimer.value) {
+    window.clearTimeout(dismissTimer.value)
+  }
+})
 </script>
 
 <template>
   <main class="page">
+    <div v-if="errorBanner" class="error-banner" role="alert">
+      <span>{{ errorBanner }}</span>
+      <button type="button" class="ghost" @click="clearErrors">Stäng</button>
+    </div>
     <header class="card header-bar">
       <div>
         <p class="eyebrow">Todo App</p>
