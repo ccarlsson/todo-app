@@ -1,0 +1,39 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: todo-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      MongoDb__ConnectionString: mongodb://mongo:27017
+      MongoDb__DatabaseName: todo-app
+      Jwt__Issuer: TodoApp
+      Jwt__Audience: TodoApp
+      JWT_KEY: change-this-development-key-please
+      Cors__AllowedOrigins__0: http://localhost:5173
+    ports:
+      - "5134:8080"
+    depends_on:
+      - mongo
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      VITE_API_BASE: http://localhost:5134
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
