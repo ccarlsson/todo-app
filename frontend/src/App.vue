@@ -3,11 +3,18 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from './stores/authStore'
 import { useTodoStore } from './stores/todoStore'
+import { useI18n } from 'vue-i18n'
+import { setLocale } from './i18n'
 const authStore = useAuthStore()
 const todoStore = useTodoStore()
+const { t, locale } = useI18n()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const errorBanner = computed(() => authStore.errorMessage || todoStore.errorMessage)
 const dismissTimer = ref<number | null>(null)
+
+function selectLocale(value: 'sv' | 'en') {
+  setLocale(value)
+}
 
 function clearErrors() {
   authStore.clearError()
@@ -36,19 +43,27 @@ onBeforeUnmount(() => {
   <main class="page">
     <div v-if="errorBanner" class="error-banner" role="alert">
       <span>{{ errorBanner }}</span>
-      <button type="button" class="ghost" @click="clearErrors">Stäng</button>
+      <button type="button" class="ghost" @click="clearErrors">{{ t('actions.close') }}</button>
     </div>
     <header class="card header-bar">
       <div>
-        <p class="eyebrow">Todo App</p>
-        <h1>Klart &amp; Tydligt</h1>
-        <p class="subtitle">Håll koll på allt som behöver bli klart.</p>
+        <p class="eyebrow">{{ t('app.eyebrow') }}</p>
+        <h1>{{ t('app.title') }}</h1>
+        <p class="subtitle">{{ t('app.tagline') }}</p>
       </div>
       <nav class="filters">
-        <RouterLink v-if="isAuthenticated" class="ghost" to="/todos">Todos</RouterLink>
-        <RouterLink v-if="isAuthenticated" class="ghost" to="/todos/new">Ny todo</RouterLink>
-        <RouterLink v-if="!isAuthenticated" class="ghost" to="/login">Logga in</RouterLink>
-        <RouterLink v-if="!isAuthenticated" class="ghost" to="/register">Registrera</RouterLink>
+        <RouterLink v-if="isAuthenticated" class="ghost" to="/todos">{{ t('nav.todos') }}</RouterLink>
+        <RouterLink v-if="isAuthenticated" class="ghost" to="/todos/new">{{ t('nav.newTodo') }}</RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="ghost" to="/login">{{ t('nav.login') }}</RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="ghost" to="/register">{{ t('nav.register') }}</RouterLink>
+        <div class="mode-switch" aria-label="Language">
+          <button type="button" :class="{ active: locale === 'sv' }" @click="selectLocale('sv')">
+            SV
+          </button>
+          <button type="button" :class="{ active: locale === 'en' }" @click="selectLocale('en')">
+            EN
+          </button>
+        </div>
       </nav>
     </header>
 

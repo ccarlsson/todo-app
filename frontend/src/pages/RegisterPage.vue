@@ -2,9 +2,11 @@
 import { reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
+import { useI18n } from 'vue-i18n'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const { t } = useI18n()
 
 const form = reactive({
   email: '',
@@ -20,15 +22,15 @@ const touched = reactive({
 function validate() {
   const next: { email?: string; password?: string } = {}
   if (!form.email.trim()) {
-    next.email = 'E-post är obligatoriskt.'
+    next.email = t('validation.emailRequired')
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    next.email = 'Ange en giltig e-postadress.'
+    next.email = t('validation.emailInvalid')
   }
 
   if (!form.password.trim()) {
-    next.password = 'Lösenord är obligatoriskt.'
+    next.password = t('validation.passwordRequired')
   } else if (form.password.length < 6) {
-    next.password = 'Lösenord måste vara minst 6 tecken.'
+    next.password = t('validation.passwordMin')
   }
 
   errors.value = next
@@ -59,7 +61,7 @@ async function handleRegister() {
 <template>
   <section class="card">
     <header class="card-header">
-      <h2>Registrera konto</h2>
+      <h2>{{ t('auth.registerTitle') }}</h2>
     </header>
 
     <div v-if="authStore.isBusy" class="skeleton skeleton-card">
@@ -73,7 +75,7 @@ async function handleRegister() {
 
     <form v-else class="stack" @submit.prevent="handleRegister">
       <label>
-        E‑post
+        {{ t('auth.email') }}
         <input
           v-model="form.email"
           type="email"
@@ -85,7 +87,7 @@ async function handleRegister() {
         <span v-if="touched.email && errors.email" class="field-error">{{ errors.email }}</span>
       </label>
       <label>
-        Lösenord
+        {{ t('auth.password') }}
         <input
           v-model="form.password"
           type="password"
@@ -96,8 +98,8 @@ async function handleRegister() {
         />
         <span v-if="touched.password && errors.password" class="field-error">{{ errors.password }}</span>
       </label>
-      <button type="submit" :disabled="authStore.isBusy">Skapa konto</button>
-      <p class="muted">Har du redan ett konto? <RouterLink to="/login">Logga in</RouterLink></p>
+      <button type="submit" :disabled="authStore.isBusy">{{ t('actions.register') }}</button>
+      <p class="muted">{{ t('auth.haveAccount') }} <RouterLink to="/login">{{ t('actions.login') }}</RouterLink></p>
     </form>
 
     <p v-if="authStore.errorMessage" class="error">{{ authStore.errorMessage }}</p>

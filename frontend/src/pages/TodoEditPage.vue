@@ -3,10 +3,12 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTodoStore } from '../stores/todoStore'
 import type { Priority, TodoStatus } from '../models/todo'
+import { useI18n } from 'vue-i18n'
 
 const todoStore = useTodoStore()
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 
 const todoId = computed(() => route.params.id as string | undefined)
 const isNew = computed(() => !todoId.value || todoId.value === 'new')
@@ -43,7 +45,7 @@ async function handleSave() {
   touchedTitle.value = true
   const next: { title?: string } = {}
   if (!form.title.trim()) {
-    next.title = 'Titel är obligatoriskt.'
+    next.title = t('validation.titleRequired')
   }
   errors.value = next
   if (Object.keys(next).length > 0) return
@@ -76,7 +78,7 @@ watch(
   () => {
     if (!touchedTitle.value) return
     if (!form.title.trim()) {
-      errors.value = { title: 'Titel är obligatoriskt.' }
+      errors.value = { title: t('validation.titleRequired') }
     } else {
       errors.value = {}
     }
@@ -88,11 +90,11 @@ watch(
   <section class="card">
     <header class="card-header">
       <div>
-        <h2>{{ isNew ? 'Skapa todo' : 'Redigera todo' }}</h2>
-        <p class="subtitle">Fyll i detaljerna nedan.</p>
+        <h2>{{ isNew ? t('todos.createTitle') : t('todos.editTitle') }}</h2>
+        <p class="subtitle">{{ t('todos.formHint') }}</p>
       </div>
       <div class="filters">
-        <RouterLink class="ghost" to="/todos">Tillbaka</RouterLink>
+        <RouterLink class="ghost" to="/todos">{{ t('actions.back') }}</RouterLink>
       </div>
     </header>
 
@@ -108,7 +110,7 @@ watch(
 
     <form class="stack" @submit.prevent="handleSave">
       <label>
-        Titel
+        {{ t('todos.fields.title') }}
         <input
           v-model="form.title"
           type="text"
@@ -120,32 +122,32 @@ watch(
         <span v-if="touchedTitle && errors.title" class="field-error">{{ errors.title }}</span>
       </label>
       <label>
-        Beskrivning
+        {{ t('todos.fields.description') }}
         <textarea v-model="form.description" rows="4"></textarea>
       </label>
       <label>
-        Förfallodatum
+        {{ t('todos.fields.dueDate') }}
         <input v-model="form.dueDate" type="date" />
       </label>
       <label>
-        Prioritet
+        {{ t('todos.fields.priority') }}
         <select v-model="form.priority">
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
+          <option value="Low">{{ t('todos.priority.low') }}</option>
+          <option value="Medium">{{ t('todos.priority.medium') }}</option>
+          <option value="High">{{ t('todos.priority.high') }}</option>
         </select>
       </label>
       <label v-if="!isNew">
-        Status
+        {{ t('todos.fields.status') }}
         <select v-model="form.status">
-          <option value="NotStarted">NotStarted</option>
-          <option value="InProgress">InProgress</option>
-          <option value="Completed">Completed</option>
+          <option value="NotStarted">{{ t('todos.status.notStarted') }}</option>
+          <option value="InProgress">{{ t('todos.status.inProgress') }}</option>
+          <option value="Completed">{{ t('todos.status.completed') }}</option>
         </select>
       </label>
 
       <button type="submit" :disabled="isBusy">
-        {{ isNew ? 'Skapa' : 'Spara' }}
+        {{ isNew ? t('actions.create') : t('actions.save') }}
       </button>
     </form>
 

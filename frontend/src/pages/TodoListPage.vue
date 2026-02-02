@@ -3,10 +3,12 @@ import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTodoStore } from '../stores/todoStore'
 import { useAuthStore } from '../stores/authStore'
+import { useI18n } from 'vue-i18n'
 
 const todoStore = useTodoStore()
 const authStore = useAuthStore()
 const router = useRouter()
+const { t } = useI18n()
 
 const stats = computed(() => ({
   total: todoStore.todos.length,
@@ -18,6 +20,32 @@ onMounted(() => {
   todoStore.loadTodos()
 })
 
+function statusLabel(value: string) {
+  switch (value) {
+    case 'NotStarted':
+      return t('todos.status.notStarted')
+    case 'InProgress':
+      return t('todos.status.inProgress')
+    case 'Completed':
+      return t('todos.status.completed')
+    default:
+      return value
+  }
+}
+
+function priorityLabel(value: string | null | undefined) {
+  switch (value) {
+    case 'Low':
+      return t('todos.priority.low')
+    case 'Medium':
+      return t('todos.priority.medium')
+    case 'High':
+      return t('todos.priority.high')
+    default:
+      return '-'
+  }
+}
+
 function handleLogout() {
   authStore.logout()
   router.push('/login')
@@ -28,11 +56,11 @@ function handleLogout() {
   <section class="card">
     <header class="card-header">
       <div>
-        <h2>Dina todos</h2>
-        <p class="subtitle">Totalt: {{ stats.total }} · Öppna: {{ stats.open }} · Klara: {{ stats.done }}</p>
+        <h2>{{ t('todos.title') }}</h2>
+        <p class="subtitle">{{ t('todos.stats', stats) }}</p>
       </div>
       <div class="filters">
-        <RouterLink v-if="authStore.isAuthenticated" class="ghost" to="/todos/new">Skapa</RouterLink>
+        <RouterLink v-if="authStore.isAuthenticated" class="ghost" to="/todos/new">{{ t('actions.create') }}</RouterLink>
         <button
           v-if="authStore.isAuthenticated"
           type="button"
@@ -40,33 +68,33 @@ function handleLogout() {
           @click="todoStore.loadTodos"
           :disabled="todoStore.isBusy"
         >
-          Uppdatera
+          {{ t('actions.update') }}
         </button>
-        <button v-if="authStore.isAuthenticated" type="button" class="ghost" @click="handleLogout">Logga ut</button>
+        <button v-if="authStore.isAuthenticated" type="button" class="ghost" @click="handleLogout">{{ t('actions.logout') }}</button>
       </div>
     </header>
 
     <div class="filters">
       <select v-model="todoStore.filters.status" @change="todoStore.loadTodos">
-        <option value="">Alla status</option>
-        <option value="NotStarted">NotStarted</option>
-        <option value="InProgress">InProgress</option>
-        <option value="Completed">Completed</option>
+        <option value="">{{ t('todos.status.all') }}</option>
+        <option value="NotStarted">{{ t('todos.status.notStarted') }}</option>
+        <option value="InProgress">{{ t('todos.status.inProgress') }}</option>
+        <option value="Completed">{{ t('todos.status.completed') }}</option>
       </select>
       <select v-model="todoStore.filters.priority" @change="todoStore.loadTodos">
-        <option value="">Alla prioriteringar</option>
-        <option value="Low">Low</option>
-        <option value="Medium">Medium</option>
-        <option value="High">High</option>
+        <option value="">{{ t('todos.priority.all') }}</option>
+        <option value="Low">{{ t('todos.priority.low') }}</option>
+        <option value="Medium">{{ t('todos.priority.medium') }}</option>
+        <option value="High">{{ t('todos.priority.high') }}</option>
       </select>
       <select v-model="todoStore.filters.dueDate" @change="todoStore.loadTodos">
-        <option value="">Alla förfallodatum</option>
-        <option value="upcoming">Kommande</option>
-        <option value="overdue">Förfallna</option>
+        <option value="">{{ t('todos.dueFilter.all') }}</option>
+        <option value="upcoming">{{ t('todos.dueFilter.upcoming') }}</option>
+        <option value="overdue">{{ t('todos.dueFilter.overdue') }}</option>
       </select>
       <select v-model="todoStore.filters.sortBy" @change="todoStore.loadTodos">
-        <option value="createdAt">Sortera: Skapad</option>
-        <option value="dueDate">Sortera: Förfallodatum</option>
+        <option value="createdAt">{{ t('todos.sort.createdAt') }}</option>
+        <option value="dueDate">{{ t('todos.sort.dueDate') }}</option>
       </select>
     </div>
 
@@ -80,7 +108,7 @@ function handleLogout() {
       </div>
     </div>
 
-    <p v-else-if="todoStore.todos.length === 0" class="empty-state">Inga todos ännu. Skapa din första!</p>
+    <p v-else-if="todoStore.todos.length === 0" class="empty-state">{{ t('todos.empty') }}</p>
 
     <ul v-else class="todo-list">
       <li v-for="todo in todoStore.todos" :key="todo.id" class="todo-item">
@@ -89,19 +117,19 @@ function handleLogout() {
             <h3>{{ todo.title }}</h3>
             <p v-if="todo.description">{{ todo.description }}</p>
             <div class="meta">
-              <span>Status: {{ todo.status }}</span>
-              <span>Prioritet: {{ todo.priority ?? '-' }}</span>
-              <span>Förfallo: {{ todo.dueDate ? todo.dueDate.slice(0, 10) : '-' }}</span>
+              <span>{{ t('todos.statusLabel') }}: {{ statusLabel(todo.status) }}</span>
+              <span>{{ t('todos.priorityLabel') }}: {{ priorityLabel(todo.priority) }}</span>
+              <span>{{ t('todos.dueLabel') }}: {{ todo.dueDate ? todo.dueDate.slice(0, 10) : '-' }}</span>
             </div>
           </div>
           <div class="actions">
             <select :value="todo.status" @change="todoStore.updateStatus(todo, ($event.target as HTMLSelectElement).value as any)">
-              <option value="NotStarted">NotStarted</option>
-              <option value="InProgress">InProgress</option>
-              <option value="Completed">Completed</option>
+              <option value="NotStarted">{{ t('todos.status.notStarted') }}</option>
+              <option value="InProgress">{{ t('todos.status.inProgress') }}</option>
+              <option value="Completed">{{ t('todos.status.completed') }}</option>
             </select>
-            <RouterLink class="ghost" :to="`/todos/${todo.id}`">Redigera</RouterLink>
-            <button type="button" class="danger" @click="todoStore.deleteTodo(todo.id)">Ta bort</button>
+            <RouterLink class="ghost" :to="`/todos/${todo.id}`">{{ t('todos.editTitle') }}</RouterLink>
+            <button type="button" class="danger" @click="todoStore.deleteTodo(todo.id)">{{ t('actions.delete') }}</button>
           </div>
         </div>
       </li>

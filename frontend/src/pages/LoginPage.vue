@@ -2,10 +2,12 @@
 import { reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
+import { useI18n } from 'vue-i18n'
 
 const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
 
 const form = reactive({
   email: '',
@@ -21,13 +23,13 @@ const touched = reactive({
 function validate() {
   const next: { email?: string; password?: string } = {}
   if (!form.email.trim()) {
-    next.email = 'E-post är obligatoriskt.'
+    next.email = t('validation.emailRequired')
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    next.email = 'Ange en giltig e-postadress.'
+    next.email = t('validation.emailInvalid')
   }
 
   if (!form.password.trim()) {
-    next.password = 'Lösenord är obligatoriskt.'
+    next.password = t('validation.passwordRequired')
   }
 
   errors.value = next
@@ -59,7 +61,7 @@ async function handleLogin() {
 <template>
   <section class="card">
     <header class="card-header">
-      <h2>Logga in</h2>
+      <h2>{{ t('auth.loginTitle') }}</h2>
     </header>
 
     <div v-if="authStore.isBusy" class="skeleton skeleton-card">
@@ -73,7 +75,7 @@ async function handleLogin() {
 
     <form v-else class="stack" @submit.prevent="handleLogin">
       <label>
-        E‑post
+        {{ t('auth.email') }}
         <input
           v-model="form.email"
           type="email"
@@ -85,7 +87,7 @@ async function handleLogin() {
         <span v-if="touched.email && errors.email" class="field-error">{{ errors.email }}</span>
       </label>
       <label>
-        Lösenord
+        {{ t('auth.password') }}
         <input
           v-model="form.password"
           type="password"
@@ -96,8 +98,8 @@ async function handleLogin() {
         />
         <span v-if="touched.password && errors.password" class="field-error">{{ errors.password }}</span>
       </label>
-      <button type="submit" :disabled="authStore.isBusy">Logga in</button>
-      <p class="muted">Inget konto? <RouterLink to="/register">Registrera dig</RouterLink></p>
+      <button type="submit" :disabled="authStore.isBusy">{{ t('actions.login') }}</button>
+      <p class="muted">{{ t('auth.noAccount') }} <RouterLink to="/register">{{ t('auth.registerLink') }}</RouterLink></p>
     </form>
 
     <p v-if="authStore.errorMessage" class="error">{{ authStore.errorMessage }}</p>
