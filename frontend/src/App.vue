@@ -1,10 +1,5 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
-import { useAuthStore } from './stores/authStore'
-import { useTodoStore } from './stores/todoStore'
-
-const authStore = useAuthStore()
-const todoStore = useTodoStore()
 </script>
 
 <template>
@@ -12,8 +7,8 @@ const todoStore = useTodoStore()
     <header class="card header-bar">
       <div>
         <p class="eyebrow">Todo App</p>
-        <h1>Vue + Pinia + Router</h1>
-        <p class="subtitle">Senaste status: {{ authStore.lastStatus || todoStore.lastStatus || '-' }}</p>
+        <h1>Klart &amp; Tydligt</h1>
+        <p class="subtitle">Håll koll på allt som behöver bli klart.</p>
       </div>
       <nav class="filters">
         <RouterLink class="ghost" to="/todos">Todos</RouterLink>
