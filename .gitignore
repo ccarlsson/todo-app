@@ -25,6 +25,8 @@ node_modules/
 # Vite / frontend builds
 frontend/dist/
 frontend/.vite/
+frontend/test-results/
+frontend/playwright-report/
 
 # .NET
 **/bin/
