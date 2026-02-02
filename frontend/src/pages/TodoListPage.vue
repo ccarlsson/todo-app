@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useTodoStore } from '../stores/todoStore'
 import { useAuthStore } from '../stores/authStore'
 
 const todoStore = useTodoStore()
 const authStore = useAuthStore()
+const router = useRouter()
 
 const stats = computed(() => ({
   total: todoStore.todos.length,
@@ -15,6 +17,11 @@ const stats = computed(() => ({
 onMounted(() => {
   todoStore.loadTodos()
 })
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -29,7 +36,7 @@ onMounted(() => {
         <button type="button" class="ghost" @click="todoStore.loadTodos" :disabled="todoStore.isBusy">
           Uppdatera
         </button>
-        <button type="button" class="ghost" @click="authStore.logout">Logga ut</button>
+        <button type="button" class="ghost" @click="handleLogout">Logga ut</button>
       </div>
     </header>
 
